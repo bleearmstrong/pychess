@@ -101,7 +101,7 @@ class Bishop(Piece):
 
     def get_valid_moves(self):
         valid_moves = []
-        locations = my_board.positions
+        locations = my_board.positions.copy()
         for ii in [1, -1]:
             for jj in [1, -1]:
                 i = 1
@@ -129,7 +129,7 @@ class Knight(Piece):
 
     def get_valid_moves(self):
         # split this into 2 over 1 up and the inverse
-        locations = my_board.positions
+        locations = my_board.positions.copy()
         valid_moves = []
         for ii in [1, -1]:
             for jj in [1, -1]:
@@ -145,6 +145,66 @@ class Knight(Piece):
                 if 0 <= new_x < 8 and 0 <= new_y < 8:
                     if locations[(new_x, new_y)] is None or locations[(new_x, new_y)].color != self.color:
                         valid_moves.append((new_x, new_y))
+        return valid_moves
+
+
+class Queen(Piece):
+
+    def __init__(self, color, location):
+        Piece.__init__(self, 'Queen', color, location)
+
+    def get_valid_moves(self):
+        # will borrow the code for rook + bishop
+        locations = my_board.positions.copy()
+        valid_moves = []
+        # first, 'bishop' moves
+        for ii in [1, -1]:
+            for jj in [1, -1]:
+                i = 1
+                new_x = self.location[0] + i*ii
+                new_y = self.location[1] + i*jj
+                while 0 <= new_x < 8 and 0 <= new_y < 8:
+                    if not locations[(new_x, new_y)]:
+                        valid_moves.append((new_x, new_y))
+                        i += 1
+                        new_x = self.location[0] + i * ii
+                        new_y = self.location[1] + i * jj
+                        continue
+                    if locations[(new_x, new_y)].color != self.color:
+                        valid_moves.append((new_x, new_y))
+                        break
+                    if locations[(new_x, new_y)].color == self.color:
+                        break
+        # now, 'rook' moves
+        for ii in [1, -1]:
+            i = 1
+            while 0 <= self.location[0] + i*ii < 8:
+                new_x = self.location[0] + i*ii
+                if not locations[(new_x, self.location[1])]:
+                    valid_moves.append((new_x, self.location[1]))
+                    i += 1
+                    continue
+                if locations[(new_x, self.location[1])].color != self.color:
+                    valid_moves.append((new_x, self.location[1]))
+                    i += 1
+                    break
+                if locations[(new_x, self.location[1])].color == self.color:
+                    break
+
+        for ii in [1, -1]:
+            i = 1
+            while 0 <= self.location[1] + i*ii < 8:
+                new_y = self.location[1] + i*ii
+                if not locations[(self.location[0], new_y)]:
+                    valid_moves.append((self.location[0], new_y))
+                    i += 1
+                    continue
+                if locations[(self.location[0], new_y)].color != self.color:
+                    valid_moves.append((self.location[0], new_y))
+                    i += 1
+                    break
+                if locations[(self.location[0], new_y)].color == self.color:
+                    break
         return valid_moves
 
 
@@ -168,6 +228,8 @@ class Board:
         self.board[0][6] = Knight('black', (0, 6))
         self.board[7][1] = Knight('white', (7, 1))
         self.board[7][6] = Knight('white', (7, 6))
+        self.board[0][3] = Queen('black', (0, 3))
+        self.board[7][3] = Queen('white', (7, 3))
 
         self.positions = dict()
         self.poll_board()
@@ -193,6 +255,6 @@ my_board.board[1][1].get_valid_moves()
 # my_board.board[4][1] = Rook('white', (4, 1))
 # my_board.board[4][1].get_valid_moves()
 
-my_board.board[4][1] = Knight('white', (4, 1))
+my_board.board[4][1] = Queen('white', (4, 1))
 my_board.print()
 my_board.board[4][1].get_valid_moves()
