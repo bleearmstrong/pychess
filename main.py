@@ -105,8 +105,8 @@ class Board:
             self.board[6][i] = Pawn('white', (6, i))
         self.board[0][0] = Rook('black', (0, 0))
         self.board[0][7] = Rook('black', (0, 7))
-        self.board[7][0] = Rook('black', (7, 0))
-        self.board[7][7] = Rook('black', (7, 7))
+        self.board[7][0] = Rook('white', (7, 0))
+        self.board[7][7] = Rook('white', (7, 7))
 
         self.positions = dict()
         self.poll_board()
