@@ -122,6 +122,32 @@ class Bishop(Piece):
         return valid_moves
 
 
+class Knight(Piece):
+
+    def __init__(self, color, location):
+        Piece.__init__(self, 'knight', color, location)
+
+    def get_valid_moves(self):
+        # split this into 2 over 1 up and the inverse
+        locations = my_board.positions
+        valid_moves = []
+        for ii in [1, -1]:
+            for jj in [1, -1]:
+                new_x = self.location[0] + 2*ii
+                new_y = self.location[1] + 1*jj
+                if 0 <= new_x < 8 and 0 <= new_y < 8:
+                    if locations[(new_x, new_y)] is None or locations[(new_x, new_y)].color != self.color:
+                        valid_moves.append((new_x, new_y))
+        for ii in [1, -1]:
+            for jj in [1, -1]:
+                new_x = self.location[0] + 1*ii
+                new_y = self.location[1] + 2*jj
+                if 0 <= new_x < 8 and 0 <= new_y < 8:
+                    if locations[(new_x, new_y)] is None or locations[(new_x, new_y)].color != self.color:
+                        valid_moves.append((new_x, new_y))
+        return valid_moves
+
+
 class Board:
 
     def __init__(self):
@@ -134,6 +160,14 @@ class Board:
         self.board[0][7] = Rook('black', (0, 7))
         self.board[7][0] = Rook('white', (7, 0))
         self.board[7][7] = Rook('white', (7, 7))
+        self.board[0][2] = Bishop('black', (0, 2))
+        self.board[0][5] = Bishop('black', (0, 5))
+        self.board[7][2] = Bishop('white', (7, 2))
+        self.board[7][5] = Bishop('white', (7, 5))
+        self.board[0][1] = Knight('black', (0, 1))
+        self.board[0][6] = Knight('black', (0, 6))
+        self.board[7][1] = Knight('white', (7, 1))
+        self.board[7][6] = Knight('white', (7, 6))
 
         self.positions = dict()
         self.poll_board()
@@ -159,6 +193,6 @@ my_board.board[1][1].get_valid_moves()
 # my_board.board[4][1] = Rook('white', (4, 1))
 # my_board.board[4][1].get_valid_moves()
 
-my_board.board[4][1] = Bishop('white', (4, 1))
+my_board.board[4][1] = Knight('white', (4, 1))
 my_board.print()
 my_board.board[4][1].get_valid_moves()
