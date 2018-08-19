@@ -29,32 +29,92 @@ class Pawn(Piece):
         Piece.__init__(self, 'pawn', color, location)
 
     def get_valid_moves(self):
-        # add ability to move two steps in first move
-        # and add en passant
+        # todo two steps in first move and add en passant
         # basic valid moves:
         # move forward
         # move diagonal if you want to take a piece
         # step one: query the board to find current positions of other pieces
         # find pieces that are eligible for capture, and squares that are eligible for moving
-        pass
+        possible_positions = [(self.location[0] - (1 * self.multiplier), self.location[1] - 1)
+                              , (self.location[0] - (1 * self.multiplier), self.location[1])
+                              , (self.location[0] - (1 * self.multiplier), self.location[1] + 1)]
+        valid_moves_0 = list()
+        for position in possible_positions:
+            if not (position[0] < 0 or position[0] > 7 or position[1] < 0 or position[1] > 7):
+                valid_moves_0.append(position)
+        captures = list()
+        locations = my_board.positions.copy()
+        relevant_squares = {key: locations[key] for key in valid_moves_0}
+        valid_moves_1 = list()
+        for square in relevant_squares:
+            if not relevant_squares[square] or relevant_squares[square].color != self.color:
+                valid_moves_1.append(square)
+        if relevant_squares[(self.location[0] - (1 * self.multiplier), self.location[1])]is not None:
+            valid_moves_1.append((self.location[0] - (1 * self.multiplier), self.location[1]))
+        return valid_moves_1
+
+
+class Rook(Piece):
+
+    def __init__(self, color, location):
+        Piece.__init__(self, 'rook', color, location)
+
+    def get_valid_moves(self):
+        # TODO add castling
+        locations = my_board.positions.copy()
+        valid_moves = list()
+        for ii in [1, -1]:
+            i = 1
+            while 0 <= self.location[0] + i*ii < 8:
+                new_x = self.location[0] + i*ii
+                if not locations[(new_x, self.location[1])]:
+                    valid_moves.append((new_x, self.location[1]))
+                    i += 1
+                    continue
+                if locations[(new_x, self.location[1])].color != self.color:
+                    valid_moves.append((new_x, self.location[1]))
+                    i += 1
+                    break
+                if locations[(new_x, self.location[1])].color == self.color:
+                    break
+
+        for ii in [1, -1]:
+            i = 1
+            while 0 <= self.location[1] + i*ii < 8:
+                new_y = self.location[1] + i*ii
+                if not locations[(self.location[0], new_y)]:
+                    valid_moves.append((self.location[0], new_y))
+                    i += 1
+                    continue
+                if locations[(self.location[0], new_y)].color != self.color:
+                    valid_moves.append((self.location[0], new_y))
+                    i += 1
+                    break
+                if locations[(new_x, self.location[1])].color == self.color:
+                    break
+        return valid_moves
 
 
 class Board:
 
     def __init__(self):
         self.board = np.empty((8, 8), dtype=object)
-        self.positions = dict()
 
         for i in range(8):
             self.board[1][i] = Pawn('black', (1, i))
             self.board[6][i] = Pawn('white', (6, i))
+        self.board[0][0] = Rook('black', (0, 0))
+        self.board[0][7] = Rook('black', (0, 7))
+        self.board[7][0] = Rook('black', (7, 0))
+        self.board[7][7] = Rook('black', (7, 7))
+
+        self.positions = dict()
+        self.poll_board()
 
     def poll_board(self):
         for i in range(8):
             for j in range(8):
                 self.positions[(i, j)] = self.board[i][j]
-
-
 
     def print(self):
         print('     a  b  c  d  e  f  g  h')
@@ -66,3 +126,8 @@ class Board:
 
 my_board = Board()
 my_board.print()
+
+my_board.board[1][1].get_valid_moves()
+
+my_board.board[4][1] = Rook('white', (4, 1))
+my_board.board[4][1].get_valid_moves()
