@@ -284,7 +284,7 @@ class Board:
 
     def play(self):
         counter = 0
-        while counter < 2:
+        while counter < 5:
             self.turn('white')
             # self.check()
             self.turn('black')
@@ -315,11 +315,11 @@ class Board:
         for i, piece in enumerate(available_moves):
             for move in available_moves[piece]:
                 flattened_list.append(((piece, move), self.get_value(move)))
-        print('flattened_list = {}'.format(flattened_list))
+        # print('flattened_list = {}'.format(flattened_list))
         return flattened_list
 
-    def make_move(self, move):
-        print('making move')
+    def make_move(self, move, color):
+        print('{} making move'.format(color))
         # print('move[0][0][1] = {}'.format(move[0][0][1]))
         # print('move[0][1] = {}'.format(move[0][1]))
         # print('move[1] = {}'.format(move[1]))
@@ -328,6 +328,7 @@ class Board:
         print('new location {}'.format(move[0][1]))
         self.board[move[0][1]] = self.board[original_location]
         self.board[original_location] = None
+        self.board[move[0][1]].location = move[0][1]
         self.poll_board()
 
     def find_piece(self, id):
@@ -338,22 +339,28 @@ class Board:
     def rebuild_board(self, positions_copy):
         for key in positions_copy:
             self.board[key] = positions_copy[key]
+            self.board[key].location = key
+
+    def find_king(self, color):
+        for index, i in np.ndenumerate(self.board):
+            if self.board[index] and str(self.board[index])[0] + color[0] == 'K' + color[0]:
+                return index
 
     def move_safe(self, color):
         opp_color = 'black' if color == 'white' else 'white'
-        opp_available_moves = self.get_available_moves(opp_color)
-        return True
-
+        opp_available_moves = [x[0][1] for x in self.get_available_moves(opp_color)]
+        king = self.find_king(color)
+        return king not in opp_available_moves
 
     def turn(self, color):
         available_moves = self.get_available_moves(color)
         selected_move = False
         while not selected_move:
             this_move = max(available_moves, key=self.max_points)
-            print('max points: {} '.format(this_move))
+            # print('max points: {} '.format(this_move))
             # now we need to make sure the move is legal (at the moment, just to make sure we're not putting the king in check)
             positions_copy = self.positions.copy()
-            self.make_move(this_move)
+            self.make_move(this_move, color)
             self.print()
             selected_move = self.move_safe(color)
             if not selected_move:
@@ -370,7 +377,7 @@ class Board:
 my_board = Board()
 my_board.print()
 my_board.play()
-my_board.print()
+# my_board.print()
 # my_board.positions
 # my_board.board[1][1].get_valid_moves()
 #
