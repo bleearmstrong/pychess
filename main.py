@@ -10,6 +10,7 @@ class Piece:
         self.location = location
         self.multiplier = 1 if color == 'white' else -1
         self.id = str(uuid.uuid4())
+        self.move_count = 0
 
 
     def valid_move(self):
@@ -40,6 +41,8 @@ class Pawn(Piece):
         possible_positions = [(self.location[0] - (1 * self.multiplier), self.location[1] - 1)
                               , (self.location[0] - (1 * self.multiplier), self.location[1])
                               , (self.location[0] - (1 * self.multiplier), self.location[1] + 1)]
+        if self.move_count == 0:
+            possible_positions.append((self.location[0] - (2 * self.multiplier), self.location[1]))
         valid_moves_0 = []
         for position in possible_positions:
             if not (position[0] < 0 or position[0] > 7 or position[1] < 0 or position[1] > 7):
@@ -329,6 +332,7 @@ class Board:
         self.board[move[0][1]] = self.board[original_location]
         self.board[original_location] = None
         self.board[move[0][1]].location = move[0][1]
+        self.board[move[0][1]].move_count += 1
         self.poll_board()
 
     def find_piece(self, id):
@@ -340,6 +344,7 @@ class Board:
         for key in positions_copy:
             self.board[key] = positions_copy[key]
             self.board[key].location = key
+            self.board[key] -= 1
 
     def find_king(self, color):
         for index, i in np.ndenumerate(self.board):
