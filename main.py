@@ -30,9 +30,10 @@ class Pawn(Piece):
 
     def __init__(self, color, location):
         Piece.__init__(self, 'pawn', color, location)
+        self.promotion_index = 0 if self.color == 'white' else 7
 
     def get_valid_moves(self):
-        # todo two steps in first move and add en passant
+        # todo add en passant
         # basic valid moves:
         # move forward
         # move diagonal if you want to take a piece
@@ -287,7 +288,7 @@ class Board:
 
     def play(self):
         counter = 0
-        while counter < 100:
+        while counter < 2000:
             self.turn('white')
             # self.check()
             self.turn('black')
@@ -364,6 +365,17 @@ class Board:
         print('king safe: {}'.format(king not in opp_available_moves))
         return king not in opp_available_moves
 
+    def promote(self):
+        possible = [piece for piece in self.positions if
+                    isinstance(self.positions[piece], Pawn) and piece[0] in (0, 7)]
+        print(possible)
+        if possible:
+            for possibility in possible:
+                color = self.board[possibility].color
+                self.board[possibility] = Queen(color, possibility)
+                self.poll_board()
+            print('promotions!')
+
     def turn(self, color):
         available_moves = self.get_available_moves(color)
         selected_move = False
@@ -380,6 +392,7 @@ class Board:
                 self.rebuild_board(positions_copy)
             if len(available_moves) == 0:
                 self.game_status = 'Stalemate'
+        self.promote()
 
 
 
