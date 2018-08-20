@@ -44,14 +44,19 @@ class Pawn(Piece):
         for position in possible_positions:
             if not (position[0] < 0 or position[0] > 7 or position[1] < 0 or position[1] > 7):
                 valid_moves_0.append(position)
-        locations = my_board.positions.copy()
-        relevant_squares = {key: locations[key] for key in valid_moves_0}
+        locations = my_board.positions.copy() # get positions of all pieces
+        relevant_squares = {key: locations[key] for key in valid_moves_0} # filter above list to only look at squares this pawn can move to
         valid_moves_1 = []
-        for square in relevant_squares:
-            if not relevant_squares[square] or relevant_squares[square].color != self.color:
+        # print('relevant squares = {}'.format(relevant_squares))
+        for square in relevant_squares: # for each square this pawn can move to...
+            if relevant_squares[square] and relevant_squares[square].location[1] != self.location[1] and relevant_squares[square].color != self.color:
                 valid_moves_1.append(square)
-        if relevant_squares[(self.location[0] - (1 * self.multiplier), self.location[1])]is not None:
-            valid_moves_1.append((self.location[0] - (1 * self.multiplier), self.location[1]))
+            if square[1] == self.location[1] and not relevant_squares[square]:
+                valid_moves_1.append(square)
+        #     if not relevant_squares[square] or relevant_squares[square].color != self.color: # if it's empty OR the piece is a different color, it passes the first test
+        #         valid_moves_1.append(square)
+        # if relevant_squares[(self.location[0] - (1 * self.multiplier), self.location[1])] is not None and relevant_squares[(self.location[0] - (1 * self.multiplier), self.location[1])].color != self.color:
+        #     valid_moves_1.append((self.location[0] - (1 * self.multiplier), self.location[1]))
         return valid_moves_1
 
 
@@ -235,11 +240,11 @@ class Board:
         self.board = np.empty((8, 8), dtype=object)
         self.game_status = 'active'
         self.points = {'p': 1
-                  , 'k': 3
-                  , 'b': 3
-                  , 'r': 5
-                  , 'Q': 9
-                  , 'K': 1000}
+                       , 'k': 3
+                       , 'b': 3
+                       , 'r': 5
+                       , 'Q': 9
+                       , 'K': 1000}
 
         for i in range(8):
             self.board[1][i] = Pawn('black', (1, i))
@@ -268,6 +273,7 @@ class Board:
         for i in range(8):
             for j in range(8):
                 self.positions[(i, j)] = self.board[i][j]
+        x = 1
 
     def print(self):
         print('     a  b  c  d  e  f  g  h')
@@ -289,7 +295,7 @@ class Board:
     def get_value(self, key):
         destination = self.positions[key]
         if destination:
-            return self.points(str(destination)[0])
+            return self.points[str(destination)[0]]
         else:
             return 0
 
@@ -309,15 +315,19 @@ class Board:
         for i, piece in enumerate(available_moves):
             for move in available_moves[piece]:
                 flattened_list.append(((piece, move), self.get_value(move)))
+        print('flattened_list = {}'.format(flattened_list))
         return flattened_list
 
     def make_move(self, move):
-        print('move[0][0][1] = {}'.format(move[0][0][1]))
-        print('move[0][1] = {}'.format(move[0][1]))
-        print('move[1] = {}'.format(move[1]))
+        print('making move')
+        # print('move[0][0][1] = {}'.format(move[0][0][1]))
+        # print('move[0][1] = {}'.format(move[0][1]))
+        # print('move[1] = {}'.format(move[1]))
         original_location = self.find_piece(move[0][0][1])
+        print('original_location {}'.format(original_location))
+        print('new location {}'.format(move[0][1]))
         self.board[move[0][1]] = self.board[original_location]
-        self.board[move[0][1]] = None
+        self.board[original_location] = None
         self.poll_board()
 
     def find_piece(self, id):
@@ -329,8 +339,11 @@ class Board:
         for key in positions_copy:
             self.board[key] = positions_copy[key]
 
-    def move_save(self):
-        pass
+    def move_safe(self, color):
+        opp_color = 'black' if color == 'white' else 'white'
+        opp_available_moves = self.get_available_moves(opp_color)
+        return True
+
 
     def turn(self, color):
         available_moves = self.get_available_moves(color)
@@ -341,7 +354,8 @@ class Board:
             # now we need to make sure the move is legal (at the moment, just to make sure we're not putting the king in check)
             positions_copy = self.positions.copy()
             self.make_move(this_move)
-            selected_move = self.move_safe()
+            self.print()
+            selected_move = self.move_safe(color)
             if not selected_move:
                 available_moves.remove(this_move)
                 self.rebuild_board(positions_copy)
@@ -356,15 +370,16 @@ class Board:
 my_board = Board()
 my_board.print()
 my_board.play()
-
+my_board.print()
+# my_board.positions
 # my_board.board[1][1].get_valid_moves()
 #
 # # my_board.board[4][1] = Rook('white', (4, 1))
 # # my_board.board[4][1].get_valid_moves()
 #
-# my_board.board[2][1] = King('white', (2, 1))
+# my_board.board[(5, 2)] = Knight('white', (5, 2))
 # my_board.print()
-# my_board.board[2][1].get_valid_moves()
+# my_board.board[(5, 2)].get_valid_moves()
 # my_board.board[(1, 2)]
 #
 # my_board.board[(1, 1)].id
@@ -375,4 +390,4 @@ my_board.play()
 #             return index
 # id = 'bc389ad0-c4bd-4a90-abc6-6f2983c89c74'
 # find_piece(id)
-blah = my_board.positions[(6, 5)]
+# blah = my_board.positions[(6, 5)]
