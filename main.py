@@ -9,7 +9,7 @@ class Piece:
         self.color = color
         self.location = location
         self.multiplier = 1 if color == 'white' else -1
-        self.id = uuid.uuid4()
+        self.id = str(uuid.uuid4())
 
 
     def valid_move(self):
@@ -233,6 +233,7 @@ class Board:
 
     def __init__(self):
         self.board = np.empty((8, 8), dtype=object)
+        self.game_status = 'active'
         self.points = {'p': 1
                   , 'k': 3
                   , 'b': 3
@@ -295,9 +296,10 @@ class Board:
     def max_points(self, group):
         return group[1]
 
-    def turn(self, color):
+    def get_available_moves(self, color):
         self.poll_board()
-        pieces_in_play = {key:self.positions[key] for key in self.positions if self.positions[key] and self.positions[key].color == color}
+        pieces_in_play = {key: self.positions[key] for key in self.positions if
+                          self.positions[key] and self.positions[key].color == color}
         available_moves = {}
         for piece in pieces_in_play:
             pieces_moves = my_board.board[piece].get_valid_moves()
@@ -307,11 +309,45 @@ class Board:
         for i, piece in enumerate(available_moves):
             for move in available_moves[piece]:
                 flattened_list.append(((piece, move), self.get_value(move)))
-        print(flattened_list)
-        print(flattened_list[0])
-        print(flattened_list[0][1])
-        max_points = max(flattened_list, key=self.max_points)
-        print('max points: {} '.format(max_points))
+        return flattened_list
+
+    def make_move(self, move):
+        print('move[0][0][1] = {}'.format(move[0][0][1]))
+        print('move[0][1] = {}'.format(move[0][1]))
+        print('move[1] = {}'.format(move[1]))
+        original_location = self.find_piece(move[0][0][1])
+        self.board[move[0][1]] = self.board[original_location]
+        self.board[move[0][1]] = None
+        self.poll_board()
+
+    def find_piece(self, id):
+        for index, i in np.ndenumerate(self.board):
+            if self.board[index] and self.board[index].id == id:
+                return index
+
+    def rebuild_board(self, positions_copy):
+        for key in positions_copy:
+            self.board[key] = positions_copy[key]
+
+    def move_save(self):
+        pass
+
+    def turn(self, color):
+        available_moves = self.get_available_moves(color)
+        selected_move = False
+        while not selected_move:
+            this_move = max(available_moves, key=self.max_points)
+            print('max points: {} '.format(this_move))
+            # now we need to make sure the move is legal (at the moment, just to make sure we're not putting the king in check)
+            positions_copy = self.positions.copy()
+            self.make_move(this_move)
+            selected_move = self.move_safe()
+            if not selected_move:
+                available_moves.remove(this_move)
+                self.rebuild_board(positions_copy)
+            if len(available_moves) == 0:
+                self.game_status = 'Stalemate'
+
 
 
 
@@ -330,3 +366,13 @@ my_board.play()
 # my_board.print()
 # my_board.board[2][1].get_valid_moves()
 # my_board.board[(1, 2)]
+#
+# my_board.board[(1, 1)].id
+#
+# def find_piece(id):
+#     for index, i in np.ndenumerate(my_board.board):
+#         if my_board.board[index] and my_board.board[index].id == id:
+#             return index
+# id = 'bc389ad0-c4bd-4a90-abc6-6f2983c89c74'
+# find_piece(id)
+blah = my_board.positions[(6, 5)]
