@@ -233,12 +233,12 @@ class Board:
 
     def __init__(self):
         self.board = np.empty((8, 8), dtype=object)
-        self.points = {'pawn': 1
-                  , 'knight': 3
-                  , 'bishop': 3
-                  , 'rook': 5
-                  , 'Queen': 9
-                  , 'King': 1000}
+        self.points = {'p': 1
+                  , 'k': 3
+                  , 'b': 3
+                  , 'r': 5
+                  , 'Q': 9
+                  , 'K': 1000}
 
         for i in range(8):
             self.board[1][i] = Pawn('black', (1, i))
@@ -277,7 +277,7 @@ class Board:
 
     def play(self):
         counter = 0
-        while counter < 5:
+        while counter < 2:
             self.turn('white')
             # self.check()
             self.turn('black')
@@ -285,10 +285,15 @@ class Board:
             counter += 1
             print(counter)
 
-    def get_value(self, key, position):
+    def get_value(self, key):
+        destination = self.positions[key]
+        if destination:
+            return self.points(str(destination)[0])
+        else:
+            return 0
 
-
-
+    def max_points(self, group):
+        return group[1]
 
     def turn(self, color):
         self.poll_board()
@@ -297,8 +302,16 @@ class Board:
         for piece in pieces_in_play:
             pieces_moves = my_board.board[piece].get_valid_moves()
             available_moves[(str(my_board.board[piece]), my_board.board[piece].id)] = pieces_moves
-        print(available_moves)
-        for move in available_moves:
+        # print(available_moves)
+        flattened_list = []
+        for i, piece in enumerate(available_moves):
+            for move in available_moves[piece]:
+                flattened_list.append(((piece, move), self.get_value(move)))
+        print(flattened_list)
+        print(flattened_list[0])
+        print(flattened_list[0][1])
+        max_points = max(flattened_list, key=self.max_points)
+        print('max points: {} '.format(max_points))
 
 
 
@@ -308,12 +321,12 @@ my_board = Board()
 my_board.print()
 my_board.play()
 
-my_board.board[1][1].get_valid_moves()
-
-# my_board.board[4][1] = Rook('white', (4, 1))
-# my_board.board[4][1].get_valid_moves()
-
-my_board.board[2][1] = King('white', (2, 1))
-my_board.print()
-my_board.board[2][1].get_valid_moves()
-my_board.board[(1, 2)]
+# my_board.board[1][1].get_valid_moves()
+#
+# # my_board.board[4][1] = Rook('white', (4, 1))
+# # my_board.board[4][1].get_valid_moves()
+#
+# my_board.board[2][1] = King('white', (2, 1))
+# my_board.print()
+# my_board.board[2][1].get_valid_moves()
+# my_board.board[(1, 2)]
