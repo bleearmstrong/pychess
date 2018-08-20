@@ -287,13 +287,13 @@ class Board:
 
     def play(self):
         counter = 0
-        while counter < 5:
+        while counter < 100:
             self.turn('white')
             # self.check()
             self.turn('black')
             # self.check()
             counter += 1
-            print(counter)
+            print('counter = {}'.format(counter))
 
     def get_value(self, key):
         destination = self.positions[key]
@@ -343,18 +343,25 @@ class Board:
     def rebuild_board(self, positions_copy):
         for key in positions_copy:
             self.board[key] = positions_copy[key]
-            self.board[key].location = key
-            self.board[key] -= 1
+            if self.board[key]:
+                self.board[key].location = key
+                self.board[key].move_count -= 1
 
     def find_king(self, color):
+        print('finding king')
+        print('K' + color[0])
+        desired_king = 'K' + color[0]
         for index, i in np.ndenumerate(self.board):
-            if self.board[index] and str(self.board[index])[0] + color[0] == 'K' + color[0]:
+            enumerated_piece = str(self.board[index])
+            if self.board[index] and enumerated_piece == desired_king:
                 return index
 
     def move_safe(self, color):
         opp_color = 'black' if color == 'white' else 'white'
         opp_available_moves = [x[0][1] for x in self.get_available_moves(opp_color)]
         king = self.find_king(color)
+        print('king location: {}'.format(king))
+        print('king safe: {}'.format(king not in opp_available_moves))
         return king not in opp_available_moves
 
     def turn(self, color):
@@ -403,3 +410,4 @@ my_board.play()
 # id = 'bc389ad0-c4bd-4a90-abc6-6f2983c89c74'
 # find_piece(id)
 # blah = my_board.positions[(6, 5)]
+# my_board.find_king('white')
