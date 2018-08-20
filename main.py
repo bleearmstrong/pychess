@@ -1,4 +1,5 @@
 import numpy as np
+import uuid
 
 
 class Piece:
@@ -8,6 +9,7 @@ class Piece:
         self.color = color
         self.location = location
         self.multiplier = 1 if color == 'white' else -1
+        self.id = uuid.uuid4()
 
 
     def valid_move(self):
@@ -231,6 +233,12 @@ class Board:
 
     def __init__(self):
         self.board = np.empty((8, 8), dtype=object)
+        self.points = {'pawn': 1
+                  , 'knight': 3
+                  , 'bishop': 3
+                  , 'rook': 5
+                  , 'Queen': 9
+                  , 'King': 1000}
 
         for i in range(8):
             self.board[1][i] = Pawn('black', (1, i))
@@ -267,9 +275,38 @@ class Board:
             print_row = str(i) + ': |' + '|'.join([item.__repr__() if item is not None else '  ' for item in row]) + '|'
             print(print_row)
 
+    def play(self):
+        counter = 0
+        while counter < 5:
+            self.turn('white')
+            # self.check()
+            self.turn('black')
+            # self.check()
+            counter += 1
+            print(counter)
+
+    def get_value(self, key, position):
+
+
+
+
+    def turn(self, color):
+        self.poll_board()
+        pieces_in_play = {key:self.positions[key] for key in self.positions if self.positions[key] and self.positions[key].color == color}
+        available_moves = {}
+        for piece in pieces_in_play:
+            pieces_moves = my_board.board[piece].get_valid_moves()
+            available_moves[(str(my_board.board[piece]), my_board.board[piece].id)] = pieces_moves
+        print(available_moves)
+        for move in available_moves:
+
+
+
+
 
 my_board = Board()
 my_board.print()
+my_board.play()
 
 my_board.board[1][1].get_valid_moves()
 
@@ -279,3 +316,4 @@ my_board.board[1][1].get_valid_moves()
 my_board.board[2][1] = King('white', (2, 1))
 my_board.print()
 my_board.board[2][1].get_valid_moves()
+my_board.board[(1, 2)]
