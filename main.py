@@ -288,20 +288,30 @@ class Board:
 
     def play(self):
         counter = 0
-        while counter < 2000:
+        while counter < 100 and self.game_status == 'active':
             self.turn('white')
             # self.check()
             self.turn('black')
             # self.check()
             counter += 1
             print('counter = {}'.format(counter))
+            # input("Press Enter to continue...")
 
-    def get_value(self, key):
+    def get_distance(self, color, key):
+        opp_color = 'black' if color == 'white' else 'white'
+        index = self.find_king(opp_color)
+        x_diff = key[0] - index[0]
+        y_diff = key[1] - index[1]
+        distance = np.sqrt(x_diff**2 + y_diff**2)
+        # print('distance = {}'.format(distance))
+        return distance * -1
+
+    def get_value(self, key, color):
         destination = self.positions[key]
         if destination:
             return self.points[str(destination)[0]]
         else:
-            return 0
+            return self.get_distance(color, key)
 
     def max_points(self, group):
         return group[1]
@@ -318,7 +328,7 @@ class Board:
         flattened_list = []
         for i, piece in enumerate(available_moves):
             for move in available_moves[piece]:
-                flattened_list.append(((piece, move), self.get_value(move)))
+                flattened_list.append(((piece, move), self.get_value(move, color)))
         # print('flattened_list = {}'.format(flattened_list))
         return flattened_list
 
@@ -349,8 +359,8 @@ class Board:
                 self.board[key].move_count -= 1
 
     def find_king(self, color):
-        print('finding king')
-        print('K' + color[0])
+        # print('finding king')
+        # print('K' + color[0])
         desired_king = 'K' + color[0]
         for index, i in np.ndenumerate(self.board):
             enumerated_piece = str(self.board[index])
@@ -361,8 +371,8 @@ class Board:
         opp_color = 'black' if color == 'white' else 'white'
         opp_available_moves = [x[0][1] for x in self.get_available_moves(opp_color)]
         king = self.find_king(color)
-        print('king location: {}'.format(king))
-        print('king safe: {}'.format(king not in opp_available_moves))
+        # print('king location: {}'.format(king))
+        # print('king safe: {}'.format(king not in opp_available_moves))
         return king not in opp_available_moves
 
     def promote(self):
@@ -375,6 +385,12 @@ class Board:
                 self.board[possibility] = Queen(color, possibility)
                 self.poll_board()
             print('promotions!')
+
+    def in_check(self, color):
+        opp_color = 'black' if color == 'white' else 'white'
+        opp_available_moves = [x[0][1] for x in self.get_available_moves(opp_color)]
+        king = self.find_king(color)
+        return king in opp_available_moves
 
     def turn(self, color):
         available_moves = self.get_available_moves(color)
@@ -390,6 +406,9 @@ class Board:
             if not selected_move:
                 available_moves.remove(this_move)
                 self.rebuild_board(positions_copy)
+
+            if len(available_moves) == 0 and self.in_check(color):
+                self.game_status = 'Lost - ' + color + 'loses'
             if len(available_moves) == 0:
                 self.game_status = 'Stalemate'
         self.promote()
